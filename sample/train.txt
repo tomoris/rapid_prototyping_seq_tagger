@@ -1,0 +1,14 @@
+これ	O
+は	O
+サン	B-sample
+プル	E-sample
+です	O
+。	O
+
+あれ	O
+も	O
+サン	B-sample
+プル	E-sample
+です	O
+か	O
+？	O
