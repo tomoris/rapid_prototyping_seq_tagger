@@ -5,8 +5,9 @@ import datetime
 import logging
 import logging.config
 
+
 def load_logger_config():
-    log_file_name = 'log/' + datetime.datetime.today().strftime('%Y%m%d-%H:%M') + '-' + os.uname().nodename +'.log'
+    log_file_name = 'log/' + datetime.datetime.today().strftime('%Y%m%d-%H:%M') + '-' + os.uname().nodename + '.log'
     logger_config_dict = {
         'version': 1,
 

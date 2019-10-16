@@ -1,4 +1,4 @@
-import sys
+
 from logging import getLogger
 
 import torch
@@ -13,7 +13,10 @@ class BiLSTM(nn.Module):
         super(BiLSTM, self).__init__()
         if config_container.pretrained_word_emb_file is None:
             logger.debug('Set random vectors as initial word embedding')
-            self.word_emb = nn.Embedding(data_container.get_word_vocab_size(), config_container.word_emb_dim, padding_idx=data_container.pad_id)
+            self.word_emb = nn.Embedding(
+                data_container.get_word_vocab_size(),
+                config_container.word_emb_dim,
+                padding_idx=data_container.pad_id)
         else:
             logger.debug('Load pretrained word embedding')
             self.word_emb = nn.Embedding.from_pretrained(data_container.pretrained_word_emb, freeze=False)
@@ -26,12 +29,20 @@ class BiLSTM(nn.Module):
             self.char_emb_dim = config_container.char_emb_dim
             self.char_cnn_dim = config_container.char_cnn_dim
             self.char_cnn_window_size = config_container.char_cnn_window_size
-            self.char_emb = nn.Embedding(data_container.get_char_vocab_size(), self.char_emb_dim, padding_idx=data_container.pad_id)
+            self.char_emb = nn.Embedding(
+                data_container.get_char_vocab_size(),
+                self.char_emb_dim,
+                padding_idx=data_container.pad_id)
             self.char_cnn = nn.Conv1d(self.char_emb_dim, self.char_cnn_dim, self.char_cnn_window_size)
-            self.char_pool = nn.MaxPool1d(self.max_char_length-(self.char_cnn_window_size -1), stride=1)
+            self.char_pool = nn.MaxPool1d(self.max_char_length - (self.char_cnn_window_size - 1), stride=1)
             self.emb_dim += config_container.char_cnn_dim
 
-        self.lstm = nn.LSTM(self.emb_dim, config_container.lstm_hidden_dim // 2, num_layers=config_container.lstm_layer, batch_first=True, bidirectional=True)
+        self.lstm = nn.LSTM(
+            self.emb_dim,
+            config_container.lstm_hidden_dim // 2,
+            num_layers=config_container.lstm_layer,
+            batch_first=True,
+            bidirectional=True)
 
         self.dropout_lstm = nn.Dropout(config_container.dropout_rate)
 
@@ -41,7 +52,8 @@ class BiLSTM(nn.Module):
         ----------
             batched_word_data : tensor, size(batch size, maximum length of word tokens), dtype=torch.long
                 input word level token indexes
-            batched_char_data : tensor, size(batch size, maximum length of word tokens, maximum length of char tokens), dtype=torch.long
+            batched_char_data : tensor,
+                size(batch size, maximum length of word tokens, maximum length of char tokens), dtype=torch.long
                 input character level token indexes
             mask : tensor, size(batch size, maximum length of word tokens), dtype=torch.uint8
                 mask, 0 means padding
@@ -56,7 +68,13 @@ class BiLSTM(nn.Module):
         word_emb = self.word_emb(bacthed_word_data)
         if self.use_char_cnn:
             char_emb = self.char_emb(bacthed_char_data)
-            char_cnn = self.char_cnn(char_emb.view(batch_size * seq_len, self.max_char_length, self.char_emb_dim).transpose(1, 2))
+            char_cnn = self.char_cnn(
+                char_emb.view(
+                    batch_size * seq_len,
+                    self.max_char_length,
+                    self.char_emb_dim).transpose(
+                    1,
+                    2))
             char_cnn = self.char_pool(char_cnn)
             char_cnn = char_cnn.view(batch_size, seq_len, self.char_cnn_dim)
             word_emb = torch.cat([word_emb, char_cnn], dim=2)

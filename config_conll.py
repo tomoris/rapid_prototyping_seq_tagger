@@ -5,10 +5,10 @@ class Config():
     def __init__(self):
         # load files
         self.pretrained_word_emb_file = '/mnt/mqs02/data/tomori/corpus/glove/glove.6B.100d.txt'
-        #self.pretrained_word_emb_file = None
-        #self.train_file = '/mnt/mqs02/data/tomori/corpus/CoNLL03/english/adjust_dir/NE/train.iob.column.tab'
-        #self.dev_file = '/mnt/mqs02/data/tomori/corpus/CoNLL03/english/adjust_dir/NE/valid.iob.column.tab'
-        #self.test_file = '/mnt/mqs02/data/tomori/corpus/CoNLL03/english/adjust_dir/NE/test.iob.column.tab'
+        # self.pretrained_word_emb_file = None
+        # self.train_file = '/mnt/mqs02/data/tomori/corpus/CoNLL03/english/adjust_dir/NE/train.iob.column.tab'
+        # self.dev_file = '/mnt/mqs02/data/tomori/corpus/CoNLL03/english/adjust_dir/NE/valid.iob.column.tab'
+        # self.test_file = '/mnt/mqs02/data/tomori/corpus/CoNLL03/english/adjust_dir/NE/test.iob.column.tab'
         self.train_file = '/mnt/mqs02/data/tomori/corpus/CoNLL03/english/adjust_dir/NE/train.bieso.column.tab'
         self.dev_file = '/mnt/mqs02/data/tomori/corpus/CoNLL03/english/adjust_dir/NE/valid.bieso.column.tab'
         self.test_file = '/mnt/mqs02/data/tomori/corpus/CoNLL03/english/adjust_dir/NE/test.bieso.column.tab'
@@ -32,8 +32,7 @@ class Config():
             self.lstm_hidden_dim = 200
             assert(self.lstm_hidden_dim % 2 == 0)
         elif self.word_rep == 'BERT':
-            # not implemented yet
-            assert(False)
+            raise NotImplementedError()
         else:
             assert(False)
 
@@ -52,6 +51,7 @@ class Config():
         self.weight_decay = float('1e-8')
 
         self.use_gpu = True
+
 
 # return Config instance to main.py
 def get_config():

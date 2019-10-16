@@ -53,7 +53,7 @@ class Data_container(object):
         for label_stem in self.semil2i.keys():
             if label_stem != self.O_str and label_stem != self.pad_str:
                 for BIES in ['B', 'I', 'E', 'S']:
-                    label_str_tmp =  BIES + '-' + label_stem
+                    label_str_tmp = BIES + '-' + label_stem
                     if label_str_tmp not in self.l2i:
                         self.l2i[label_str_tmp] = len(self.l2i)
                         self.i2l[len(self.i2l)] = label_str_tmp
@@ -63,11 +63,15 @@ class Data_container(object):
 
         if config_container.pretrained_word_emb_file is not None:
             if self.pretrained_word_emb.size(0) != len(self.w2i):
-                logger.debug('number of out of pretrained vocab {}'.format(len(self.w2i) - self.pretrained_word_emb.size(0)))
+                logger.debug('number of out of pretrained vocab {}'.format(
+                        len(self.w2i) - self.pretrained_word_emb.size(0)))
                 pretrained_embedding_list = [self.pretrained_word_emb]
                 for i in range(self.pretrained_word_emb.size(0), len(self.w2i)):
-                    rand_vec = torch.rand(config_container.word_emb_dim) * 2 * torch.sqrt(torch.tensor([3.0 / config_container.word_emb_dim]))
-                    rand_vec = rand_vec - torch.sqrt(torch.tensor([3.0 / config_container.word_emb_dim])).expand(config_container.word_emb_dim)
+                    rand_vec = torch.rand(config_container.word_emb_dim) * 2 \
+                        * torch.sqrt(torch.tensor([3.0 / config_container.word_emb_dim]))
+                    rand_vec = rand_vec \
+                        - torch.sqrt(torch.tensor(
+                                [3.0 / config_container.word_emb_dim])).expand(config_container.word_emb_dim)
                     pretrained_embedding_list.append(rand_vec.unsqueeze(0))
                 self.pretrained_word_emb = torch.cat(pretrained_embedding_list, dim=0)
             assert(self.pretrained_word_emb.size(0) == len(self.w2i))
@@ -89,7 +93,8 @@ class Data_container(object):
     def load_annotated_corpus(self, file_name, data_type, vocab_expansion=True):
         """
         load annotated corpus. supports partially annotated data
-        annotated data form is that each token is separated by \n and each line is (token + tab + label_1 + label_2 + ...)
+        annotated data form is that each token is separated by \n and each line is
+                (token + tab + label_1 + label_2 + ...)
             if label columnn is null then all possible label is used
         ----------
         parameters
@@ -211,13 +216,14 @@ class Data_container(object):
         # token_ids, char_ids, label_ids, multi_hot_tensor, masks
         batched_data = [[], [], [], [], []]
         batched_data_lens = []
-        for i in range(self._start_idx_for_iter, min(self._start_idx_for_iter + self._batch_size_for_iter, self._data_len_for_iter)):
+        for i in range(self._start_idx_for_iter,
+                       min(self._start_idx_for_iter + self._batch_size_for_iter, self._data_len_for_iter)):
             r = self._rand_list_for_iter[i]
             batched_data_lens.append(len(self._data_for_iter[0][r]))
             for j in range(1, len(self._data_for_iter)):
                 batched_data[j-1].append(self._data_for_iter[j][r])
             # mask
-            batched_data[-1].append(torch.tensor([1 for _  in range(len(self._data_for_iter[0][r]))], dtype=torch.uint8))
+            batched_data[-1].append(torch.tensor([1 for _ in range(len(self._data_for_iter[0][r]))], dtype=torch.uint8))
         batched_data_lens = torch.argsort(torch.tensor(batched_data_lens), descending=True)
 
         sorted_batched_data = [[None for __ in range(len(batched_data[0]))] for _ in range(len(self._data_for_iter))]
@@ -229,7 +235,6 @@ class Data_container(object):
 
         self._start_idx_for_iter += self._batch_size_for_iter
         return adjusted_batched_data
-
 
     def __call__(self, data_type, batch_size):
         self._data_type_for_iter = data_type
@@ -251,12 +256,14 @@ class Data_container(object):
                 -1 means all possible labels
         returns
         -------
-            semi_markov_multi_label_tensor : tensor, size(length of tokens, maximum NE length, label size), dtype=torch.long
+            semi_markov_multi_label_tensor : tensor,
+                size(length of tokens, maximum NE length, label size), dtype=torch.long
                 target NE label indexes as multi hot vector
                 supports partailly labeld data
         """
         if self.semi_markov:
-            semi_markov_multi_label_tensor = torch.zeros(len(label_ids), self.max_NE_length, len(self.semil2i), dtype=torch.long)
+            semi_markov_multi_label_tensor = torch.zeros(len(label_ids), self.max_NE_length,
+                                                         len(self.semil2i), dtype=torch.long)
             for t in range(len(label_ids)):
                 for k in range(self.max_NE_length):
                     if k == 0:
@@ -287,7 +294,8 @@ class Data_container(object):
                     elif t - k >= 0:
                         possible_semi_markov_labels_at_t_minus_k = set()
                         if label_ids[t-k] == -1:
-                            possible_semi_markov_labels_at_t_minus_k = {_ for _ in self.semil2i.keys() if _ != self.pad_str and _ != self.O_str}
+                            possible_semi_markov_labels_at_t_minus_k = \
+                                     {_ for _ in self.semil2i.keys() if _ != self.pad_str and _ != self.O_str}
                         else:
                             label_set_at_t_minus_k = [_ for _ in label_ids[t-k]]
                             for label_id in label_set_at_t_minus_k:
@@ -302,7 +310,8 @@ class Data_container(object):
                                     if BIES == 'B':
                                         possible_semi_markov_labels_at_t_minus_k.add(label_stem)
                         # multi hot vector
-                        possible_semi_markov_labels = possible_semi_markov_labels_at_t_minus_k & possible_semi_markov_labels_prev
+                        possible_semi_markov_labels = \
+                            possible_semi_markov_labels_at_t_minus_k & possible_semi_markov_labels_prev
                         for l in possible_semi_markov_labels:
                             semi_markov_multi_label_tensor[t, k, self.semil2i[l]] = 1
                         # remove inconsistent label path
@@ -315,7 +324,8 @@ class Data_container(object):
                         for l in possible_semi_markov_labels:
                             semi_markov_multi_label_tensor[t, k, self.semil2i[l]] = 1
         else:
-            semi_markov_multi_label_tensor = torch.zeros(len(label_ids), self.max_NE_length, len(self.l2i), dtype=torch.long)
+            semi_markov_multi_label_tensor = torch.zeros(len(label_ids), self.max_NE_length,
+                                                         len(self.l2i), dtype=torch.long)
             for t in range(len(label_ids)):
                 if label_ids[t] == [-1]:
                     semi_markov_multi_label_tensor[t, 0, :] = 1

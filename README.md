@@ -1,5 +1,5 @@
 # Rapid Prototyping of Domain-Specific Named Entity Tagger
-Implementation of PYHSCRF (tomori e al. 2019) with python and golang. PYHSCRF only requires a few seed terms, in addition to unannotated corpora for named entity recognition. It permits the iterative and incremental design of named entity classes for new domains. PYHSCRF is a hybrid of a generative model named PYHSMM and a semi-Markov CRF-based discriminative model, which play complementary roles in generalizing seed terms and in distinguishing between NE chunks and non-NE words.
+Implementation of PYHSCRF (tomori et al., 2019) with python and golang. PYHSCRF only requires a few seed terms, in addition to unannotated corpora for named entity recognition. It permits the iterative and incremental design of named entity classes for new domains. PYHSCRF is a hybrid of a generative model named PYHSMM and a semi-Markov CRF-based discriminative model, which play complementary roles in generalizing seed terms and in distinguishing between NE chunks and non-NE words.
 
 ## Prerequisites
 ```

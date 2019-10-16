@@ -31,14 +31,14 @@ def make_triplet(label_ids, neg_tag, BIES_splitter, index_of_splitted_BIES, labe
                     if tag_stem == triplets[-1][2]:
                         triplets[-1][1] = t
                     else:
-                        #triplet = [t, t, neg_tag]
+                        # triplet = [t, t, neg_tag]
                         triplet = [t, t, tag_stem]
                         triplets.append(triplet)
                 elif BIES == 'E':
                     if tag_stem == triplets[-1][2]:
                         triplets[-1][1] = t
                     else:
-                        #triplet = [t, t, neg_tag]
+                        # triplet = [t, t, neg_tag]
                         triplet = [t, t, tag_stem]
                         triplets.append(triplet)
                 elif BIES == 'S':
@@ -205,7 +205,8 @@ def calc_relaxed_match_f_score(tag_seq_RL, batch_label, label_alphabet, beta=1.0
                     if tag == c_tri[2]:
                         c_start_idx = c_tri[0]
                         c_end_idx = c_tri[1]
-                        if (c_start_idx <= start_idx and start_idx <= c_end_idx) or (c_start_idx <= end_idx and end_idx <= c_end_idx):
+                        if (c_start_idx <= start_idx and start_idx <= c_end_idx) or (
+                                c_start_idx <= end_idx and end_idx <= c_end_idx):
                             tp += 1
                             tp_tag[tag] += 1
                             c_triplets.remove(c_tri)
@@ -291,8 +292,9 @@ def get_eval_metric_score(tag_seq_RL, batch_label, eval_style, label_alphabet, b
     elif eval_style == 'weighted_macro_f':
         _, _, _, _, _, _, each_tag_accu = calc_f_score(
             tag_seq_RL, batch_label, label_alphabet, beta)
-        weights = {'T': 0.12812479168055463, 'F': 0.0963269115392307, 'Ac': 0.09219385374308378, 'Sf': 0.1301246583561096,
-                    'Af': 0.13279114725684954, 'D': 0.1394573695086994, 'Q': 0.1397906806212919, 'St': 0.14119058729418038}
+        weights = {'T': 0.12812479168055463, 'F': 0.0963269115392307, 'Ac': 0.09219385374308378,
+                   'Sf': 0.1301246583561096, 'Af': 0.13279114725684954, 'D': 0.1394573695086994,
+                   'Q': 0.1397906806212919, 'St': 0.14119058729418038}
         metric_score = 0.0
         for tag, accus in each_tag_accu.items():
             metric_score += weights[tag] * accus[2]
@@ -303,10 +305,11 @@ def get_eval_metric_score(tag_seq_RL, batch_label, eval_style, label_alphabet, b
 
     return metric_score
 
+
 def calc_f_beta(prec, recall, beta):
     if prec > 0.0 and recall > 0.0:
         f = (1.0 + beta * beta) * prec * recall / \
-              ((beta * beta * prec) + recall)
+            ((beta * beta * prec) + recall)
     else:
         f = 0.0
     return f
@@ -322,7 +325,7 @@ def get_all_scores(all_predict_list, all_correct_list, id2label, id2semilabel, s
             all_correct_list_adjust[-1].append(_[0])
 
     if semilabel:
-        all_predict_list_adjust = [[ [_[0], _[1], id2semilabel[_[2]]] for _ in __] for __ in all_predict_list]
+        all_predict_list_adjust = [[[_[0], _[1], id2semilabel[_[2]]] for _ in __] for __ in all_predict_list]
         assert(len(all_predict_list_adjust) == len(all_correct_list_adjust))
     else:
         all_predict_list_adjust = [[_[2] for _ in __] for __ in all_predict_list]

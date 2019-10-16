@@ -51,5 +51,7 @@ class Config():
         self.use_gpu = True
 
 # return Config instance to main.py
+
+
 def get_config():
     return Config()
