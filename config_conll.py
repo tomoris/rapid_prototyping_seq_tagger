@@ -52,6 +52,9 @@ class Config():
 
         self.use_gpu = True
 
+        # PYHSMM
+        self.use_PYHSMM = False
+
 
 # return Config instance to main.py
 def get_config():

@@ -22,11 +22,11 @@ class Rapid_prototyping_seq_tagger(nn.Module):
             logger.critical('Building word_rep error. word_rep can receive BiLSTM and BERT in config file')
             sys.exit(1)
         logger.debug('Set up semi-Markov CRF layer')
-        self.semicrf = SemiCRF(
-            self.word_rep_dim,
-            data_container.get_label_vocab_size(),
-            config_container.max_NE_length,
-            data_container.pad_id)
+        self.semicrf = SemiCRF(self.word_rep_dim, data_container.get_label_vocab_size(),
+                               config_container.max_NE_length, data_container.pad_id)
+
+        if config_container.use_PYHSMM:
+            pass
 
     def forward(self, token_ids, char_ids, mask, multi_hot_label_tensor=None, calc_loss=False):
         """
