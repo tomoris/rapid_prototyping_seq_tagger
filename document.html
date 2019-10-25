@@ -1,0 +1,254 @@
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>PYHSCRF</title>
+    <link href="main.css" rel="stylesheet" type="text/css">
+    <meta name="description" content="少量のアノテーションデータからドメイン特有のNERモデルの構築、モデル学習が容易であるため、ドメイン適応を簡単にできます。" />
+    <meta name="keywords" content="オープンソース" />
+</head>
+
+<body>
+
+    <h1>PYHSCRF</h1>
+
+    <p><a href="">English</a></p>
+
+    <p>
+        <a href="https://github.com/tomoris/rapid_prototyping_seq_tagger">PYHSCRF</a>は、...。
+    </p>
+
+    <ul>
+        <li><a href="#features">特徴</a></li>
+        <li><a href="#download">ダウンロード・インストール</a></li>
+        <li><a href="#documentation">プログラム仕様</a></li>
+        <ul>
+            <li>解析：<a href="method-ja.html">手法の詳細</a>, <a href="io-ja.html">入出力の形式</a>, <a href="api-ja.html">API</a>
+            </li>
+            <li>学習：<a href="train-ja.html">モデル学習</a>, <a href="model-ja.html">入手可能なモデル</a></li>
+        </ul>
+        <li><a href="active-ja.html">KyTeaを使った分野適応</a></li>
+        <li><a href="#development">開発情報</a></li>
+    </ul>
+
+
+    <a name="features">
+        <h2>特徴</h2>
+
+        <p>
+            PYHSCRFには以下の機能が揃っています：
+        </p>
+
+        <ul>
+            <li><b>フルアノテーションからのNEタガーの構築：</b...</li> <li><b>部分アノテーションからのNEタガーの構築</b>...</li>
+            <li><b>NE辞書からのNEタガーの構築</b>...</li>
+        </ul>
+
+        <p>
+            ...
+        </p>
+
+        <p>
+            また、詳しくは以下の論文をご参照ください。
+        </p>
+
+        <ul>
+            <li>Suzushi Tomori，Yugo Murawaki, Shinsuke Mori．<br /><a
+                    href="https://easychair.org/publications/preprint/LlQj">A Hybrid Generative/Discriminative Model
+                    for Rapid Prototyping of Domain-Specific Named Entity Recognition</a><br />The 20th International
+                Conference on Intelligent Text Processing and Computational Linguistics (CICLing 2019), La Rochelle,
+                France, April 2019</li>
+        </ul>
+
+
+        <a name="download">
+            <h2>ダウンロード・インストール</h2>
+
+            <h3>ダウンロード</h3>
+
+            <p>
+                <b>最新のバージョン：</b>
+                <a href="https://github.com/tomoris/rapid_prototyping_seq_tagger">PYHSCRF (コード)</a>
+            </p>
+
+            <p>
+                PYHSCRFのバージョン...以降には...。
+            </p>
+
+            <p>
+                <b>最新コード（未リリース）：</b> <a href="" target="_blank">@github</a><br />
+                <b>過去のバージョン：</b>
+                <a href="">0.0.1</a>
+            </p>
+
+            <p>
+                ソースコードは<a href="http://sourceforge.jp/projects/opensource/wiki/licenses%2FApache_License_2.0"
+                    target="_blank">Apache License Version 2</a>の条件に基づいて頒布されています。
+                同梱されているモデル、または<a href="">モデル</a>のページでダウンロード可能なモデルは...。
+            </p>
+
+            <h3>インストール</h3>
+
+            <p>
+                Linuxで動作確認をしています。
+                インストールをするために、最新版をダウンロードしてから、...
+            </p>
+
+            <pre>
+tar -xzf X.X.X.tar.gz
+cd X.X.X
+./configure
+make
+make install
+</pre>
+
+            <p>
+                これでヘルプが表示されればプログラムは正しく動作しています。
+                プログラムの効率やインストール場所を指定する<a href="compile-ja.html">オプション</a>はコンパイル時に指定できます。
+            </p>
+
+            <!-- <a name="documentation">
+                <h2>プログラム仕様</h2>
+
+                <h3>単語分割・読み推定</h3>
+
+                <p>
+                    KyTeaをインストールしてから、プログラムを実行することで分かち書きされていないテキストを分割し、読みを付与することができます(モデルの文字コードはUTF-8なので、UTF-8以外の文字コードのテキストであれば新たにモデルを学習する必要があります)。
+                    <b>test.raw</b>にベタ書きのテキストがあり、以下のようなコマンドを実行すれば、<b>test.full</b>に解析結果が出力されます。
+                </p>
+
+                <pre>
+kytea &lt; test.raw &gt; test.full
+</pre>
+
+                <h3>モデル学習</h3>
+
+                <p>
+                    単語分割・読み推定のモデルを構築することはそれほど難しくありません（学習の詳細は<a href="train-ja.html">こちら</a>）。
+                    まず、以下の形式のコーパスを用意します(単語分割のみを必要とする場合、タグは不要です。また、train-kyteaで「-notag」を指定することもできます)：
+                </p>
+
+                <pre>
+コーパス/名詞/こーぱす の/助詞/の 文/名詞/ぶん で/助動詞/で す/語尾/す 。/補助記号/。
+もう/副詞/もう ひと/名詞/ひと つ/接尾辞/つ の/助詞/の 文/名詞/ぶん で/補助記号/で す/語尾/す 。/補助記号/。
+</pre>
+
+                <p>
+                    このコーパスは<b>train.full</b>という名前で、<b>test.raw</b>という分かち書きされていないテストデータのファイルがある場合、このようにモデルを学習してテストデータの単語分割・読み推定ができます。
+                </p>
+
+                <pre>
+train-kytea -full train.wp -model model.dat
+kytea -model model.dat &lt; test.raw &gt; test.full
+</pre>
+
+                <p>
+                    出力の<b>test.full</b>は単語分割され、各単語にタグが付きます。
+                </p>
+
+                <h3>各プログラムの使い方</h3>
+
+                <h4>kytea</h4>
+
+                <p><b>kytea</b>はモデルを用いて単語分割と読み推定を行います。</p>
+
+                <pre>
+解析オプション：
+  -model   使用するモデルファイル
+  -nows    単語分割を行わない(-in rawと併用不可)
+  -notags  タグ推定を行わない(-in fullと併用不可)
+  -notag   n個目のタグを推定しない（-notag 1 なら1個目のタグを推定しない）
+  -nounk   未知語の読み推定を行わない
+  -wsconst 分割したくない文字種の指定 (例えば-wsconst Dで数字を分割しない)
+  -unkbeam 未知語の読み推定で利用するビーム幅(デフォルト：５０、０は全探索)
+入出力オプション:
+  -in      入力の<a href="io-ja.html">形式</a>(raw/full/part/conf/tok、デフォルトraw)
+  -out     出力の<a href="io-ja.html">形式</a>(full/part/conf/tok/eda/tags、デフォルトfull)
+  -tagmax  出力するタグ候補の最大限(デフォルト3、0で全てを出力)
+  -deftag  サブワード辞書に存在しない未知語など、タグを与えられない単語のため
+           のタグ
+  -unktag  辞書に存在しない単語に付与されるタグ
+入出力オプション(上級編):
+  -wordbound フルアノテーションの単語境界を表す文字 (" ")
+  -tagbound  フル・部分的アノテーションのタグ境界を表す文字 ("/")
+  -elembound フル・部分的アノテーションの候補境界を表す文字 ("&amp;")
+  -unkbound  部分的アノテーションで「未付与タグ」を表す文字 (" ")
+  -skipbound 部分的アノテーションで「付与見送りタグ」を表す文字 ("?")
+  -nobound   部分的アノテーションで「単語境界なし」を表す文字 ("-")
+  -hasbound  部分的アノテーションで「単語境界あり」を表す文字 ("|")
+</pre>
+
+                <h4>train-kytea</h4>
+
+                <p><b>train-kytea</b>はKyTeaモデルを学習するためのプログラムです。</p>
+
+                <pre>
+入力・出力オプション：
+  -encode  入出力の文字コード (utf8/euc/sjis、デフォルト：utf8)
+  -full    <a href="io-ja.html">フルアノテーション</a>の学習データ(複数可)
+  -tok     <a href="io-ja.html">単語分割のみ</a>の学習データ(複数可)
+  -part    <a href="io-ja.html">部分的にアノテーション</a>の学習データ(複数可)
+  -conf    <a href="io-ja.html">信頼度付き</a>の学習データ(複数可)
+  -feat    -featoutで生成された<a href="train.html">素性ファイル</a>
+  -dict    辞書ファイル (複数可)
+  -subword サブワード単位の辞書。追加することで未知語の読み推定が有効になる
+  -model   モデルファイルの出力先
+  -modtext テキスト形式のモデル出力 (デフォルトはバイナリ形式)
+  -featout 生成する素性ファイル
+モデル学習オプション：
+  -nows    単語分割のモデルを学習しない
+  -notags  タグ付与モデルを学習しない
+  -global  n個目のタグを<a href="train-ja.html#global">全体モデル</a>で学習する（品詞推定等に利用）
+  -debug   デバッグ情報のレベル（0=なし、1=通常、2=詳細）
+モデル学習オプション(上級編)：
+  -charw   <a href="method-ja.html">文字素性の窓幅</a> (デフォルト：3)
+  -charn   <a href="method-ja.html">文字素性のn-gram長</a> (デフォルト：3)
+  -typew   <a href="method-ja.html">文字タイプ素性の窓幅</a> (デフォルト：3)
+  -typen   <a href="method-ja.html">文字タイプ素性のn-gram長</a> (デフォルト：3)
+  -dictn   辞書素性の単語帳上限 (デフォルト：4)
+  -unkn    未知語モデルのn-gram長 (デフォルト：3)
+  -eps     分類器学習の停止条件を調整するε
+  -cost    分類器学習のコストハイパーパラメータ
+  -bias    分類器の学習でバイアスを用いる (デフォルト：true)
+  -solver  分類器の種類 (1=SVM、7=ロジスティック回帰など。デフォルト：1)
+</pre>
+
+                <a name="development">
+                    <h2>開発情報</h2>
+
+                    <h3>開発チーム</h3>
+
+                    <ul>
+                        <li><a href="http://www.phontron.com">Graham Neubig</a> (プロジェクトリーダー、プログラム全体の開発)</li>
+                        <li><a href="http://www.ar.media.kyoto-u.ac.jp/members/sasada/">笹田 鉄郎</a> (言語資源の整理)</li>
+                        <li><a href="http://www.ar.media.kyoto-u.ac.jp/members/mori/">森 信介</a> (指導、パワーユーザー)</li>
+                    </ul>
+
+                    <p>KyTeaプロジェクトに参加されたい方はkytea@<img src="tail.png">までご連絡ください。</p>
+
+
+                    <h3>バージョン歴</h3>
+
+                    <h4>改良予定</h4>
+
+                    <ul>
+                        <li>EUCの3バイト文字の正しい取扱い(現在では正しく動作しません)。</li>
+                        <li>半角ローマ字やカタカナの扱いの改良。現在の最新版では読み推定の前に半角文字を全角文字に変換すると正しく読み推定ができます。</li>
+                    </ul>
+
+                    <h4>Version 0.4.7 (2014年10月18日)</h4>
+
+                    <ul>
+                        <li>モデル更新による様々な分野（特許、ツイッターなど）での性能向上</li>
+                        <li>コンパイル時のエラーへの対処</li>
+                    </ul>
+
+                    <p>古いバージョンの情報は<a href="changes-ja.html">バージョン歴</a>ページへ。</p>
+
+                    <p>
+                        <i>Last Modified: 2012-01-27 by neubig</i>
+                    </p> -->
+
+</body>
+
+</html>
