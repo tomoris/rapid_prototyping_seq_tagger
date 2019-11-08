@@ -30,14 +30,16 @@ def eval(model, data_container, batch_size, data_type, use_gpu, device):
     with torch.no_grad():
         for i, batched_data in enumerate(
                 data_container(data_type, batch_size)):
-            if use_gpu:
-                # batched_data is (token_ids, char_ids, label_ids
-                # multi_hot_label_tensor, masks)
-                token_ids = batched_data[0].to(device)
-                char_ids = batched_data[1].to(device)
-                mask = batched_data[4].to(device)
-                multi_hot_label_tensor = batched_data[3].to(device)
-            loss, predict_triplets_list = model(token_ids, char_ids, mask, multi_hot_label_tensor, calc_loss=True)
+            # if use_gpu:
+            # batched_data is (token_ids, char_ids, label_ids
+            # multi_hot_label_tensor, masks)
+            token_ids = batched_data[0].to(device)
+            char_ids = batched_data[1].to(device)
+            mask = batched_data[4].to(device)
+            multi_hot_label_tensor = batched_data[3].to(device)
+            tokens = batched_data[5]
+            loss, predict_triplets_list = model(
+                token_ids, char_ids, mask, multi_hot_label_tensor, calc_loss=True, sents=tokens)
             all_correct_list.extend(batched_data[2])
             all_predict_list.extend(predict_triplets_list)
     all_scores = get_all_scores(
@@ -89,18 +91,25 @@ def train(config_file):
             if i % 100 == 0:
                 logger.info('epoch:{0} training instance {1}'.format(epoch, i * config_container.batch_size))
             model.zero_grad()
-            if config_container.use_gpu:
-                # batched_data is (token_ids, char_ids, label_ids, multi_hot_label_tensor, masks)
-                token_ids = batched_data[0].to(device)
-                char_ids = batched_data[1].to(device)
-                mask = batched_data[4].to(device)
-                multi_hot_label_tensor = batched_data[3].to(device)
-            loss, predict_triplets_list = model(token_ids, char_ids, mask, multi_hot_label_tensor, calc_loss=True)
+            # if config_container.use_gpu:
+            # batched_data is
+            # (token_ids, char_ids, label_ids, multi_hot_label_tensor, masks, tokens)
+            token_ids = batched_data[0].to(device)
+            char_ids = batched_data[1].to(device)
+            mask = batched_data[4].to(device)
+            multi_hot_label_tensor = batched_data[3].to(device)
+            tokens = batched_data[5]
+            loss, predict_triplets_list = model(
+                token_ids, char_ids, mask, multi_hot_label_tensor, sents=tokens, calc_loss=True)
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
             logger.debug('epoch:{0} i:{1} loss:{2}'.format(epoch, i, loss.item()))
         logger.debug('epoch:{0} total_loss:{1:.4f}'.format(epoch, total_loss))
+
+        if config_container.use_PYHSMM:
+            model.train_PYHSMM(data_container.data_container_for_PYHSMM, config_container.PYHSMM_threads,
+                               config_container.PYHSMM_batch)
         if data_container.train_file_is_partially_labeled is False:
             all_scores = eval(model, data_container, config_container.batch_size,
                               'train', config_container.use_gpu, device)

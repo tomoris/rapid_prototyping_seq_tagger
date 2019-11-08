@@ -4,6 +4,11 @@ import random
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
+from . import convert_word_to_utf_char
+
+import go  # pyhsmm with golang
+import bayselm  # pyhsmm with golang
+
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -64,14 +69,14 @@ class Data_container(object):
         if config_container.pretrained_word_emb_file is not None:
             if self.pretrained_word_emb.size(0) != len(self.w2i):
                 logger.debug('number of out of pretrained vocab {}'.format(
-                        len(self.w2i) - self.pretrained_word_emb.size(0)))
+                    len(self.w2i) - self.pretrained_word_emb.size(0)))
                 pretrained_embedding_list = [self.pretrained_word_emb]
                 for i in range(self.pretrained_word_emb.size(0), len(self.w2i)):
                     rand_vec = torch.rand(config_container.word_emb_dim) * 2 \
                         * torch.sqrt(torch.tensor([3.0 / config_container.word_emb_dim]))
                     rand_vec = rand_vec \
                         - torch.sqrt(torch.tensor(
-                                [3.0 / config_container.word_emb_dim])).expand(config_container.word_emb_dim)
+                            [3.0 / config_container.word_emb_dim])).expand(config_container.word_emb_dim)
                     pretrained_embedding_list.append(rand_vec.unsqueeze(0))
                 self.pretrained_word_emb = torch.cat(pretrained_embedding_list, dim=0)
             assert(self.pretrained_word_emb.size(0) == len(self.w2i))
@@ -89,6 +94,9 @@ class Data_container(object):
 
         logger.debug('label vocab {}'.format(self.l2i))
         logger.debug('semilabel vocab {}'.format(self.semil2i))
+
+        if config_container.use_PYHSMM:
+            self._load_data_container(config_container)
 
     def load_annotated_corpus(self, file_name, data_type, vocab_expansion=True):
         """
@@ -205,6 +213,7 @@ class Data_container(object):
         # adjusted_batched_data[2] = pad_sequence(batched_data[2], batch_first=True)
         adjusted_batched_data[3] = pad_sequence(batched_data[3], batch_first=True)
         adjusted_batched_data[4] = pad_sequence(batched_data[4], batch_first=True)
+        adjusted_batched_data[5] = batched_data[5]
         return adjusted_batched_data
 
     def __iter__(self):
@@ -213,23 +222,26 @@ class Data_container(object):
     def __next__(self):
         if self._start_idx_for_iter >= self._data_len_for_iter:
             raise StopIteration()
-        # token_ids, char_ids, label_ids, multi_hot_tensor, masks
-        batched_data = [[], [], [], [], []]
+        # token_ids, char_ids, label_ids, multi_hot_tensor, masks, tokens
+        batched_data = [[], [], [], [], [], []]
         batched_data_lens = []
         for i in range(self._start_idx_for_iter,
                        min(self._start_idx_for_iter + self._batch_size_for_iter, self._data_len_for_iter)):
             r = self._rand_list_for_iter[i]
             batched_data_lens.append(len(self._data_for_iter[0][r]))
             for j in range(1, len(self._data_for_iter)):
-                batched_data[j-1].append(self._data_for_iter[j][r])
+                batched_data[j - 1].append(self._data_for_iter[j][r])
             # mask
-            batched_data[-1].append(torch.tensor([1 for _ in range(len(self._data_for_iter[0][r]))], dtype=torch.uint8))
+            batched_data[4].append(torch.tensor([1 for _ in range(len(self._data_for_iter[0][r]))], dtype=torch.uint8))
+            # tokens
+            batched_data[5].append(self._data_for_iter[0][r])
         batched_data_lens = torch.argsort(torch.tensor(batched_data_lens), descending=True)
 
-        sorted_batched_data = [[None for __ in range(len(batched_data[0]))] for _ in range(len(self._data_for_iter))]
+        sorted_batched_data = [[None for __ in range(len(batched_data[0]))]
+                               for _ in range(len(self._data_for_iter) + 1)]
         for j in range(len(batched_data)):
             for i in range(len(batched_data[j])):
-                sorted_batched_data[j-1][i] = batched_data[j-1][batched_data_lens[i]]
+                sorted_batched_data[j - 1][i] = batched_data[j - 1][batched_data_lens[i]]
 
         adjusted_batched_data = self.adjust_batched_data(sorted_batched_data)
 
@@ -273,7 +285,7 @@ class Data_container(object):
                         else:
                             possible_semi_markov_labels = set()
                             possible_semi_markov_labels_prev = set()
-                            label_set_at_t_minus_k = [_ for _ in label_ids[t-k]]
+                            label_set_at_t_minus_k = [_ for _ in label_ids[t - k]]
                             for label_id in label_set_at_t_minus_k:
                                 if label_id == -1 or label_id == self.pad_id:
                                     assert(False)
@@ -293,11 +305,11 @@ class Data_container(object):
                             semi_markov_multi_label_tensor[t, k, self.semil2i[l]] = 1
                     elif t - k >= 0:
                         possible_semi_markov_labels_at_t_minus_k = set()
-                        if label_ids[t-k] == -1:
+                        if label_ids[t - k] == -1:
                             possible_semi_markov_labels_at_t_minus_k = \
-                                     {_ for _ in self.semil2i.keys() if _ != self.pad_str and _ != self.O_str}
+                                {_ for _ in self.semil2i.keys() if _ != self.pad_str and _ != self.O_str}
                         else:
-                            label_set_at_t_minus_k = [_ for _ in label_ids[t-k]]
+                            label_set_at_t_minus_k = [_ for _ in label_ids[t - k]]
                             for label_id in label_set_at_t_minus_k:
                                 if label_id == -1 or label_id == self.pad_id:
                                     assert(False)
@@ -389,3 +401,31 @@ class Data_container(object):
 
     def i2l(self):
         return self.i2l
+
+    def _load_data_container(self, config_container):
+        sent_list = []
+        sent_word_ids_list = []
+        sent_utf_char_list = []
+        self.w2c = convert_word_to_utf_char.Word_to_Char()
+        for line in open(config_container.PYHSMM_train_file):
+            line = line.rstrip()
+            line_sp = line.split(' ')
+            newsent = ''
+            orig_words = []
+            orig_word_ids = []
+            for token in line_sp:
+                self.w2c.add(token)
+                newsent += self.w2c.get(token)
+                orig_words.append(token)
+                orig_word_ids.append(self.w2i.get(token, self.unk_id))
+            sent_utf_char_list.append(newsent)
+            sent_list.append(orig_words)
+            sent_word_ids_list.append(orig_word_ids)
+
+        slice_sent = go.Slice_string(sent_utf_char_list)
+        self.data_container_for_PYHSMM = bayselm.NewDataContainerFromSents(slice_sent)
+        self.orig_data_for_PYHSMM = sent_list
+        self.orig_data_word_ids_for_PYHSMM = sent_word_ids_list
+        self.sent_utf_char_list = sent_utf_char_list
+
+        return

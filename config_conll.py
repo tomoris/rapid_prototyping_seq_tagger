@@ -54,6 +54,23 @@ class Config():
 
         # PYHSMM
         self.use_PYHSMM = False
+        if self.use_PYHSMM:
+            self.PYHSMM_theta = 2.0
+            self.PYHSMM_d = 0.1
+            self.PYHSMM_gammaA = 1.0
+            self.PYHSMM_gammaB = 1.0
+            self.PYHSMM_betaA = 1.0
+            self.PYHSMM_betaB = 1.0
+            self.PYHSMM_alpha = 1.0
+            self.PYHSMM_beta = 1.0
+            self.PYHSMM_maxNgram = 2
+            self.PYHSMM_maxWordLength = 5
+            self.PYHSMM_posSize = -1
+            self.PYHSMM_vocabSize = 2097152.0
+            self.PYHSMM_epoch = 10
+            self.PYHSMM_threads = 8
+            self.PYHSMM_batch = 128
+            self.PYHSMM_train_file = ''
 
 
 # return Config instance to main.py

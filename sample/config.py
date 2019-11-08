@@ -47,10 +47,10 @@ class Config():
         self.momentum = 0.9
         self.weight_decay = float('1e-8')
 
-        self.use_gpu = True
+        self.use_gpu = False
 
         # PYHSMM
-        self.use_PYHSMM = False
+        self.use_PYHSMM = True
         if self.use_PYHSMM:
             self.PYHSMM_theta = 2.0
             self.PYHSMM_d = 0.1
@@ -67,6 +67,7 @@ class Config():
             self.PYHSMM_epoch = 10
             self.PYHSMM_threads = 8
             self.PYHSMM_batch = 128
+            self.PYHSMM_train_file = './sample/train.raw'
 
 
 # return Config instance to main.py
