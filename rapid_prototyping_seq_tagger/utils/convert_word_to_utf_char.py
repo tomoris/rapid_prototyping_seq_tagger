@@ -52,7 +52,8 @@ class Word_to_Char():
             hex_byte = bytes.fromhex(hex_str)
             try:
                 utf_char = hex_byte.decode('utf-8')
-                if utf_char == '\n' or utf_char == '\r' or utf_char == '\n\r' or utf_char == self.char_unk or utf_char.split() == '':
+                if utf_char == '\n' or utf_char == '\r' or utf_char == '\n\r' or \
+                        utf_char == self.char_unk or utf_char.split() == '':
                     continue
                 if len(utf_char) != 1:
                     continue

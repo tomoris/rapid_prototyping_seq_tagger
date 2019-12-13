@@ -138,7 +138,7 @@ def train(config_file):
         if final_scores is None:
             final_scores = all_scores
         else:
-            logger.info('dev corpus F score (max score duaring training epoch) = {0: .4 f} '.format(dev_max_flag))
+            logger.info('dev corpus F score (max score duaring training epoch) = {0:.4f} '.format(dev_max_flag))
         logger.info('final test corpus F score = {1:.4f}'.format(epoch, all_scores['micro_f_1.0']))
         logger.info('final test corpus precision = {1:.4f}'.format(epoch, all_scores['micro_precision']))
         logger.info('final test corpus recall = {1:.4f}'.format(epoch, all_scores['micro_recall']))

@@ -67,7 +67,6 @@ class SemiCRF(nn.Module):
                     of t-th triplet in b-th batch data
                 predict_triplets_list[b][0][0] is 0, predict_triplets_list[b][-1][0] is length of the sentence
         """
-        print(self.lambda_zero)
         batch_size = word_rep.size(0)
         seq_len = word_rep.size(1)
 
@@ -103,7 +102,9 @@ class SemiCRF(nn.Module):
             batch_size = label_score.size(0)
             seq_len = label_score.size(1)
 
-            log_gold_path_score = self._calc_log_gold_path_score(label_score, mask, label_ids, each_score_in_PYHSMM=each_score_in_PYHSMM, utf_char_sents=utf_char_sents)
+            log_gold_path_score = self._calc_log_gold_path_score(label_score, mask, label_ids,
+                                                                 each_score_in_PYHSMM=each_score_in_PYHSMM,
+                                                                 utf_char_sents=utf_char_sents)
             # calculate log gold path score in last token position
             log_alpha_tmp_list = []
             last_token_idx = (torch.sum(
@@ -123,7 +124,6 @@ class SemiCRF(nn.Module):
             log_all_path_score = log_all_path_score.squeeze()
 
             loss = log_all_path_score - log_gold_path_score
-            print(loss)
             loss = loss.mean()
             assert(loss.item() >= 0.0)
         else:
@@ -159,6 +159,8 @@ class SemiCRF(nn.Module):
             pos_scores_in_PYHSMM = torch.tensor([[each_score_in_PYHSMM.GetPosScore(l, ll) for ll in range(
                 self.label_size)] for l in range(self.label_size)])
             min_score_in_PYHSMM = torch.ones((batch_size, self.label_size, self.label_size)) * -700.0
+            pos_scores_in_PYHSMM = pos_scores_in_PYHSMM.cuda()
+            min_score_in_PYHSMM = min_score_in_PYHSMM.cuda()
 
         # log_alpha[b][t][k][l]
         for t in range(seq_len):
@@ -185,6 +187,7 @@ class SemiCRF(nn.Module):
                                         phrase_scores_in_PYHSMM[b][l] = each_score_in_PYHSMM.GetWordScore(
                                             b, t, k, l, kk)
                             phrase_scores_in_PYHSMM = torch.tensor(phrase_scores_in_PYHSMM)
+                            phrase_scores_in_PYHSMM = phrase_scores_in_PYHSMM.cuda()
                             phrase_scores_in_PYHSMM = phrase_scores_in_PYHSMM.unsqueeze(2).expand(
                                 -1, -1, self.label_size) + \
                                 pos_scores_in_PYHSMM.unsqueeze(0).expand(batch_size, -1, -1)
@@ -232,6 +235,8 @@ class SemiCRF(nn.Module):
             pos_scores_in_PYHSMM = torch.tensor([[each_score_in_PYHSMM.GetPosScore(l, ll) for ll in range(
                 self.label_size)] for l in range(self.label_size)])
             min_score_in_PYHSMM = torch.ones((batch_size, self.label_size, self.label_size)) * -700.0
+            pos_scores_in_PYHSMM = pos_scores_in_PYHSMM.cuda()
+            min_score_in_PYHSMM = min_score_in_PYHSMM.cuda()
 
         # log_gold_alpha[b][t][k][l]
         for t in range(seq_len):
@@ -264,6 +269,7 @@ class SemiCRF(nn.Module):
                                         phrase_scores_in_PYHSMM[b][l] = each_score_in_PYHSMM.GetWordScore(
                                             b, t, k, l, kk)
                             phrase_scores_in_PYHSMM = torch.tensor(phrase_scores_in_PYHSMM)
+                            phrase_scores_in_PYHSMM = phrase_scores_in_PYHSMM.cuda()
                             phrase_scores_in_PYHSMM = phrase_scores_in_PYHSMM.unsqueeze(2).expand(
                                 -1, -1, self.label_size) + \
                                 pos_scores_in_PYHSMM.unsqueeze(0).expand(batch_size, -1, -1)

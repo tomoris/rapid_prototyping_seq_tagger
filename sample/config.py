@@ -47,7 +47,7 @@ class Config():
         self.momentum = 0.9
         self.weight_decay = float('1e-8')
 
-        self.use_gpu = False
+        self.use_gpu = True
 
         # PYHSMM
         self.use_PYHSMM = True

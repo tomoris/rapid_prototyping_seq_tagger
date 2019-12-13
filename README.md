@@ -26,7 +26,11 @@ python setup.py build (TODO)
 
 ## Usage
 In training:  
-` python rapid_prototyping_seq_tagger/main.py --mode train --config sample/config.py`  
+
+```
+export PYTHONPATH=$PYTHONPATH:$GOPATH/src/github.com/tomoris/PYHSMM/pylib
+python rapid_prototyping_seq_tagger/main.py --mode train --config sample/config.py
+```
 In predicting:  
 ` python rapid_prototyping_seq_tagger/main.py --mode predict --load_model model_dir/tagger.model`  
 
