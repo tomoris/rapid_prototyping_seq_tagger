@@ -19,10 +19,10 @@ Go 12.5
 github.com/tomoris/PYHSMM
 ```
 
-## Installing
+<!-- ## Installing
 ```
 python setup.py build (TODO)
-```
+``` -->
 
 ## Usage
 In training:  
