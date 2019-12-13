@@ -42,6 +42,6 @@ This supports both Markov CRF and semi-Markov CRF. These can be trained on parti
 
 
 ## References
-- (tomori et al., 2015) https://easychair.org/publications/preprint/LlQj
+- (tomori et al., 2019) https://easychair.org/publications/preprint/LlQj
 
 ## License
