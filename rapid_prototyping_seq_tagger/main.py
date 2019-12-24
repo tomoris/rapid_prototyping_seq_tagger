@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding;utf-8 -*-
 
+
+from logging import getLogger
+from utils.logger_config import load_logger_config
+
+load_logger_config()
+logger = getLogger(__name__)
+logger.debug('Start logger')
+
 import random
 import argparse
 import importlib
@@ -12,12 +20,6 @@ from utils.data_container import Data_container
 from model.rapid_prototyping_seq_tagger import Rapid_prototyping_seq_tagger
 from utils.eval_metrics import get_all_scores
 
-from logging import getLogger
-from utils.logger_config import load_logger_config
-load_logger_config()
-logger = getLogger(__name__)
-
-logger.debug('Start logger')
 
 torch.manual_seed(0)
 random.seed(0)

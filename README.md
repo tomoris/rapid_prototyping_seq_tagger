@@ -32,7 +32,9 @@ export PYTHONPATH=$PYTHONPATH:$GOPATH/src/github.com/tomoris/PYHSMM/pylib
 python rapid_prototyping_seq_tagger/main.py --mode train --config sample/config.py
 ```
 In predicting:  
-` python rapid_prototyping_seq_tagger/main.py --mode predict --load_model model_dir/tagger.model`  
+```
+python rapid_prototyping_seq_tagger/main.py --mode predict --load_model model_dir/tagger.model
+```
 
 ## Decoding Model and Data Format
 This supports both Markov CRF and semi-Markov CRF. These can be trained on partially annotated data  

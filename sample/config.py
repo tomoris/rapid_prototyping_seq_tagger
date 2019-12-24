@@ -5,7 +5,7 @@ class Config():
     def __init__(self):
         # load files
         self.pretrained_word_emb_file = None
-        self.train_file = './sample/train_partial.txt'
+        self.train_file = './sample/train.txt'
         self.dev_file = None
         self.test_file = './sample/train.txt'
 
@@ -35,8 +35,9 @@ class Config():
 
         self.semi_markov = False
         self.max_NE_length = 1
-        if self.semi_markov:
-            self.max_NE_length = 2
+        if self.semi_markov is False:
+            if self.max_NE_length != 1:
+                assert(False)
 
         # training hyper-prameters
         self.epoch = 100
@@ -50,8 +51,10 @@ class Config():
         self.use_gpu = True
 
         # PYHSMM
-        self.use_PYHSMM = True
+        self.use_PYHSMM = False
         if self.use_PYHSMM:
+            if self.semi_markov is False:
+                assert(False)
             self.PYHSMM_theta = 2.0
             self.PYHSMM_d = 0.1
             self.PYHSMM_gammaA = 1.0

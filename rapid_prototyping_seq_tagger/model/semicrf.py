@@ -1,10 +1,11 @@
 
 from logging import getLogger
 
+logger = getLogger(__name__)
+
 import torch
 from torch import nn as nn
 
-logger = getLogger(__name__)
 
 
 class SemiCRF(nn.Module):
@@ -42,6 +43,39 @@ class SemiCRF(nn.Module):
 
         self.lambda_zero = nn.Parameter(torch.zeros(1))
 
+    def calc_forward_alpha(self, word_rep, mask, each_score_in_PYHSMM=None, utf_char_sents=None):
+        batch_size = word_rep.size(0)
+        seq_len = word_rep.size(1)
+
+        label_score = self.classifier(word_rep)
+        label_score[:, :, self.pad_id] = -10000.0
+        if self.max_NE_length == 1:
+            label_score = self.classifier(word_rep)
+            label_score[:, :, self.pad_id] = -10000.0
+            label_score = label_score.unsqueeze(2)
+        else:
+            word_seq_rep = self.zero_score.unsqueeze(0).unsqueeze(0).expand(
+                batch_size, seq_len, self.max_NE_length, self.word_rep_dim).clone()
+            for k in range(self.max_NE_length):
+                if seq_len >= (k + 1):
+                    word_seq_rep_tmp = self.cnn[k](word_rep.transpose(1, 2))
+                    word_seq_rep[:, k:, k, :] = word_seq_rep_tmp.transpose(1, 2)
+            label_score = self.classifier(word_seq_rep)
+            label_score[:, :, :, self.pad_id] = -10000.0
+
+        adjust_mask = mask.unsqueeze(2).expand(batch_size, seq_len, self.max_NE_length).clone()
+        for k in range(self.max_NE_length):
+            if seq_len >= (k + 1):
+                adjust_mask[:, k, k + 1:] = 0
+        label_score = torch.where((adjust_mask == 1).unsqueeze(3).expand(
+            batch_size, seq_len, self.max_NE_length, self.label_size),
+            label_score, self.log_zero_score.unsqueeze(0).unsqueeze(0).expand(
+                batch_size, seq_len, self.max_NE_length, self.label_size).clone())
+
+        log_alpha = self._semicrf_forward(label_score, adjust_mask=adjust_mask,
+                                          each_score_in_PYHSMM=each_score_in_PYHSMM, utf_char_sents=utf_char_sents)
+        return log_alpha, label_score
+
     def forward(self, word_rep, mask, label_ids=None, calc_loss=False, each_score_in_PYHSMM=None, utf_char_sents=None):
         """
         parameters
@@ -67,48 +101,58 @@ class SemiCRF(nn.Module):
                     of t-th triplet in b-th batch data
                 predict_triplets_list[b][0][0] is 0, predict_triplets_list[b][-1][0] is length of the sentence
         """
+        # batch_size = word_rep.size(0)
+        # seq_len = word_rep.size(1)
+
+        # label_score = self.classifier(word_rep)
+        # label_score[:, :, self.pad_id] = -10000.0
+        # if self.max_NE_length == 1:
+        #     label_score = self.classifier(word_rep)
+        #     label_score[:, :, self.pad_id] = -10000.0
+        #     label_score = label_score.unsqueeze(2)
+        # else:
+        #     word_seq_rep = self.zero_score.unsqueeze(0).unsqueeze(0).expand(
+        #         batch_size, seq_len, self.max_NE_length, self.word_rep_dim).clone()
+        #     for k in range(self.max_NE_length):
+        #         if seq_len >= (k + 1):
+        #             word_seq_rep_tmp = self.cnn[k](word_rep.transpose(1, 2))
+        #             word_seq_rep[:, k:, k, :] = word_seq_rep_tmp.transpose(1, 2)
+        #     label_score = self.classifier(word_seq_rep)
+        #     label_score[:, :, :, self.pad_id] = -10000.0
+
+        # mask = mask.unsqueeze(2).expand(batch_size, seq_len, self.max_NE_length).clone()
+        # for k in range(self.max_NE_length):
+        #     if seq_len >= (k + 1):
+        #         mask[:, k, k + 1:] = 0
+        # label_score = torch.where((mask == 1).unsqueeze(3).expand(
+        #     batch_size, seq_len, self.max_NE_length, self.label_size),
+        #     label_score, self.log_zero_score.unsqueeze(0).unsqueeze(0).expand(
+        #         batch_size, seq_len, self.max_NE_length, self.label_size).clone())
+
+        # log_alpha = self._semicrf_forward(label_score, mask, each_score_in_PYHSMM=each_score_in_PYHSMM,
+        #                                   utf_char_sents=utf_char_sents)
+
+        log_alpha, label_score = self.calc_forward_alpha(word_rep, mask, each_score_in_PYHSMM=None, utf_char_sents=None)
+
         batch_size = word_rep.size(0)
         seq_len = word_rep.size(1)
-
-        label_score = self.classifier(word_rep)
-        label_score[:, :, self.pad_id] = -10000.0
-        if self.max_NE_length == 1:
-            label_score = self.classifier(word_rep)
-            label_score[:, :, self.pad_id] = -10000.0
-            label_score = label_score.unsqueeze(2)
-        else:
-            word_seq_rep = self.zero_score.unsqueeze(0).unsqueeze(0).expand(
-                batch_size, seq_len, self.max_NE_length, self.word_rep_dim).clone()
-            for k in range(self.max_NE_length):
-                if seq_len >= (k + 1):
-                    word_seq_rep_tmp = self.cnn[k](word_rep.transpose(1, 2))
-                    word_seq_rep[:, k:, k, :] = word_seq_rep_tmp.transpose(1, 2)
-            label_score = self.classifier(word_seq_rep)
-            label_score[:, :, :, self.pad_id] = -10000.0
-
-        mask = mask.unsqueeze(2).expand(batch_size, seq_len, self.max_NE_length).clone()
+        adjust_mask = mask.unsqueeze(2).expand(batch_size, seq_len, self.max_NE_length).clone()
         for k in range(self.max_NE_length):
             if seq_len >= (k + 1):
-                mask[:, k, k + 1:] = 0
-        label_score = torch.where((mask == 1).unsqueeze(3).expand(
-            batch_size, seq_len, self.max_NE_length, self.label_size),
-            label_score, self.log_zero_score.unsqueeze(0).unsqueeze(0).expand(
-                batch_size, seq_len, self.max_NE_length, self.label_size).clone())
-
-        log_alpha = self._semicrf_forward(label_score, mask, each_score_in_PYHSMM=each_score_in_PYHSMM,
-                                          utf_char_sents=utf_char_sents)
+                adjust_mask[:, k, k + 1:] = 0
 
         if calc_loss:
             batch_size = label_score.size(0)
             seq_len = label_score.size(1)
 
-            log_gold_path_score = self._calc_log_gold_path_score(label_score, mask, label_ids,
+            log_gold_path_score = self._calc_log_gold_path_score(label_score, adjust_mask, label_ids,
                                                                  each_score_in_PYHSMM=each_score_in_PYHSMM,
                                                                  utf_char_sents=utf_char_sents)
             # calculate log gold path score in last token position
             log_alpha_tmp_list = []
             last_token_idx = (torch.sum(
-                mask[:, :, 0].long(), dim=1)).unsqueeze(1).unsqueeze(1).expand(batch_size, seq_len, self.label_size)
+                adjust_mask[:, :, 0].long(), dim=1)).unsqueeze(1).unsqueeze(1).expand(
+                    batch_size, seq_len, self.label_size)
             padding_log_alpha_idx = self.one_vec.unsqueeze(0).expand(
                 batch_size, seq_len, self.label_size).clone().long() * (seq_len - 1)
             for k in range(self.max_NE_length):
@@ -129,10 +173,10 @@ class SemiCRF(nn.Module):
         else:
             loss = 0.0
 
-        predict = self._predict(label_score, mask, log_alpha)
+        predict = self._predict(label_score, adjust_mask, log_alpha)
         return loss, predict
 
-    def _semicrf_forward(self, label_score, mask, each_score_in_PYHSMM=None, utf_char_sents=None):
+    def _semicrf_forward(self, label_score, adjust_mask, each_score_in_PYHSMM=None, utf_char_sents=None):
         """
         parameters
         ----------
@@ -202,12 +246,13 @@ class SemiCRF(nn.Module):
                     log_alpha_tmp = torch.cat(log_alpha_tmp_list, dim=2)
                     logsumexp_alpha = self._log_sum_exp(log_alpha_tmp)
                     # if padding token then forward score log(0.0)
-                    log_alpha[:, t, k, :] = torch.where((mask[:, t, k] == 1).unsqueeze(1).expand(
+                    log_alpha[:, t, k, :] = torch.where((adjust_mask[:, t, k] == 1).unsqueeze(1).expand(
                         -1, self.label_size), logsumexp_alpha, log_zero_score)
 
         return log_alpha
 
-    def _calc_log_gold_path_score(self, label_score, mask, label_ids, each_score_in_PYHSMM=None, utf_char_sents=None):
+    def _calc_log_gold_path_score(self, label_score, adjust_mask, label_ids,
+                                  each_score_in_PYHSMM=None, utf_char_sents=None):
         """
         parameters
         ----------
@@ -288,11 +333,11 @@ class SemiCRF(nn.Module):
                     log_gold_alpha[:, t, k, :] = torch.where(
                         multi_hot_label_vector == 1, logsumexp_alpha, log_zero_score)
                     # if padding token then forward score log(0.0)
-                    log_gold_alpha[:, t, k, :] = torch.where((mask[:, t, k] == 1).unsqueeze(
+                    log_gold_alpha[:, t, k, :] = torch.where((adjust_mask[:, t, k] == 1).unsqueeze(
                         1).expand(-1, self.label_size), log_gold_alpha[:, t, k, :], log_zero_score)
         # calculate log gold path score in last token position
         log_alpha_tmp_list = []
-        last_token_idx = (torch.sum(mask[:, :, 0].long(), dim=1)).unsqueeze(
+        last_token_idx = (torch.sum(adjust_mask[:, :, 0].long(), dim=1)).unsqueeze(
             1).unsqueeze(1).expand(batch_size, seq_len, self.label_size)
         padding_log_alpha_idx = self.one_vec.unsqueeze(0).expand(
             batch_size, seq_len, self.label_size).clone().long() * (seq_len - 1)

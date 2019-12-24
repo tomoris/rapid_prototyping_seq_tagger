@@ -1,11 +1,12 @@
 
 from logging import getLogger
 
+logger = getLogger(__name__)
+
 import torch
 from torch import nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-logger = getLogger(__name__)
 
 
 class BiLSTM(nn.Module):
@@ -24,7 +25,6 @@ class BiLSTM(nn.Module):
         self.dropout_word = nn.Dropout(config_container.dropout_rate)
         self.use_char_cnn = config_container.use_char_cnn
         if self.use_char_cnn:
-            # not implemented yet
             self.max_char_length = config_container.max_char_length
             self.char_emb_dim = config_container.char_emb_dim
             self.char_cnn_dim = config_container.char_cnn_dim

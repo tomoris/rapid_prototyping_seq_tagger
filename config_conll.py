@@ -36,7 +36,7 @@ class Config():
         else:
             assert(False)
 
-        self.semi_markov = False
+        self.semi_markov = True
         self.max_NE_length = 1
         if self.semi_markov:
             self.max_NE_length = 6
@@ -53,7 +53,7 @@ class Config():
         self.use_gpu = True
 
         # PYHSMM
-        self.use_PYHSMM = True
+        self.use_PYHSMM = False
         if self.use_PYHSMM:
             self.PYHSMM_theta = 2.0
             self.PYHSMM_d = 0.1

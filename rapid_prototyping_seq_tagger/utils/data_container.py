@@ -1,4 +1,8 @@
 
+from logging import getLogger
+logger = getLogger(__name__)
+
+import sys
 import random
 
 import torch
@@ -6,11 +10,13 @@ from torch.nn.utils.rnn import pad_sequence
 
 from . import convert_word_to_utf_char
 
-import go  # pyhsmm with golang
-import bayselm  # pyhsmm with golang
+try:
+    import go  # pyhsmm with golang
+    import bayselm  # pyhsmm with golang
+except ImportError:
+    logger.warning('import error! bayselm')
 
-from logging import getLogger
-logger = getLogger(__name__)
+
 
 
 class Data_container(object):
@@ -96,6 +102,11 @@ class Data_container(object):
         logger.debug('semilabel vocab {}'.format(self.semil2i))
 
         if config_container.use_PYHSMM:
+            try:
+                bayselm
+            except NameError:
+                logger.critical('import error! please import pyhsmm library')
+                sys.exit()
             self._load_data_container(config_container)
 
     def load_annotated_corpus(self, file_name, data_type, vocab_expansion=True):
@@ -288,7 +299,8 @@ class Data_container(object):
                             label_set_at_t_minus_k = [_ for _ in label_ids[t - k]]
                             for label_id in label_set_at_t_minus_k:
                                 if label_id == -1 or label_id == self.pad_id:
-                                    assert(False)
+                                    raise NotImplementedError
+                                    assert(False)  # 文頭の単語がアノテーションされてない場合の部分アノテーションの実装。
                                 label_str = self.i2l[label_id]
                                 if label_str == self.O_str:
                                     possible_semi_markov_labels.add(label_str)
