@@ -45,7 +45,7 @@ class Config():
         self.epoch = 5
         self.batch_size = 10
         self.dropout_rate = 0.5
-        self.grad_algorithm = SGD
+        self.grad_algorithm = 'SGD'  # or 'Adam'
         self.lr = 0.015
         self.lr_decay = 0.05
         self.momentum = 0.9
