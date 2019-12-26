@@ -28,9 +28,15 @@ python setup.py build (TODO)
 In training:  
 
 ```
-export PYTHONPATH=$PYTHONPATH:$GOPATH/src/github.com/tomoris/PYHSMM/pylib
+export PYTHONPATH=$PYTHONPATH:./ 
 python rapid_prototyping_seq_tagger/main.py --mode train --config sample/config.py
 ```
+
+if you use PYHSMM module, please input this command before running
+```
+export PYTHONPATH=$PYTHONPATH:$GOPATH/src/github.com/tomoris/PYHSMM/pylib
+```
+
 In predicting:  
 ```
 python rapid_prototyping_seq_tagger/main.py --mode predict --load_model model_dir/tagger.model
