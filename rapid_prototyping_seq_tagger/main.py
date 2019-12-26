@@ -9,6 +9,7 @@ load_logger_config()
 logger = getLogger(__name__)
 logger.debug('Start logger')
 
+import sys
 import random
 import argparse
 import importlib
@@ -68,25 +69,31 @@ def train(config_file):
         device = torch.device('cuda')
         model = model.to(device)
     logger.info('Set up optimizer')
-    optimizer = optim.SGD(
-        model.parameters(),
-        lr=config_container.lr,
-        momentum=config_container.momentum,
-        weight_decay=config_container.weight_decay)
-    # optimizer = optim.Adam(model.parameters(), lr=config_container.lr) #,
-    # momentum=config_container.momentum,
-    # weight_decay=config_container.weight_decay)
+    if config_container.grad_algorithm == 'SGD':
+        optimizer = optim.SGD(
+            model.parameters(),
+            lr=config_container.lr,
+            momentum=config_container.momentum,
+            weight_decay=config_container.weight_decay)
+    elif config_container.grad_algorithm == 'Adam':
+        optimizer = optim.Adam(model.parameters(), lr=config_container.lr,
+                               momentum=config_container.momentum, weight_decay=config_container.weight_decay)
+    else:
+        logger.critical('gradient algorithm set up error!')
+        sys.exit()
 
     dev_max_score = float('-inf')
     dev_max_flag = False
     final_scores = None
+    save_flag = True
 
     logger.info('Start training')
     for epoch in range(config_container.epoch):
-        lr = config_container.lr / (1.0 + (epoch * config_container.lr_decay))
-        logger.debug('Change optimizer, lr = {}'.format(lr))
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = lr
+        if config_container.grad_algorithm == 'SGD':
+            lr = config_container.lr / (1.0 + (epoch * config_container.lr_decay))
+            logger.debug('Change optimizer, lr = {}'.format(lr))
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = lr
         model.train()
         total_loss = 0.0
         for i, batched_data in enumerate(data_container('train', config_container.batch_size)):
@@ -125,6 +132,12 @@ def train(config_file):
             if dev_max_score < all_scores['micro_f_1.0']:
                 dev_max_score = all_scores['micro_f_1.0']
                 dev_max_flag = True
+        if config_container.save_path is not None:
+            if dev_max_flag:
+                save_path = config_container.save_path + '_epoch_' + str(epoch) + '.weight'
+                torch.save(model.state_dict(), save_path)
+                save_flag = False
+
         if config_container.test_file is not None:
             all_scores = eval(model, data_container, config_container.batch_size,
                               'test', config_container.use_gpu, device)
@@ -135,6 +148,10 @@ def train(config_file):
                 final_scores = all_scores
                 dev_max_flag = False
     logger.info('End training')
+
+    if config_container.save_path is not None and save_flag:
+        save_path = config_container.save_path + '.weight'
+        torch.save(model.state_dict(), save_path)
 
     if config_container.test_file is not None:
         if final_scores is None:

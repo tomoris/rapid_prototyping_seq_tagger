@@ -43,12 +43,13 @@ class Config():
         self.epoch = 100
         self.batch_size = 10
         self.dropout_rate = 0.2
+        self.grad_algorithm = 'SGD' # or 'Adam'
         self.lr = 0.015
         self.lr_decay = 0.05
         self.momentum = 0.9
         self.weight_decay = float('1e-8')
 
-        self.use_gpu = True
+        self.use_gpu = False
 
         # PYHSMM
         self.use_PYHSMM = False
@@ -71,6 +72,8 @@ class Config():
             self.PYHSMM_threads = 8
             self.PYHSMM_batch = 128
             self.PYHSMM_train_file = './sample/train.raw'
+
+        self.save_path = 'save_file_path'  # or None
 
 
 # return Config instance to main.py
